@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  Admin
+  Atasan
+  Staf
+}
+
+model User {
+  pegawaiId Int    @id @default(autoincrement())
+  password  String
+  role      Role
+
+  pegawai Pegawai?
+}
+
+model Pegawai {
+  id        Int    @id @default(autoincrement())
+  nip       String @unique
+  unitKerja String
+  jabatan   String
+  nama      String
+
+  atasanId Int?
+
+  atasan  Pegawai?  @relation("AtasanPegawai", fields: [atasanId], references: [id])
+  pegawai Pegawai[] @relation("AtasanPegawai")
+  laporan Laporan[]
+  user    User      @relation(fields: [id], references: [pegawaiId])
+}
+
+model Laporan {
+  id              Int      @id @default(autoincrement())
+  tanggal         DateTime
+  kegiatan        String
+  rincianKegiatan String?
+  lokasi          String
+
+  pegawaiId Int
+
+  foto    LaporanFoto[]
+  pegawai Pegawai       @relation(fields: [pegawaiId], references: [id])
+}
+
+model LaporanFoto {
+  id   Int    @id @default(autoincrement())
+  path String
+
+  laporanId Int
+
+  Laporan Laporan @relation(fields: [laporanId], references: [id])
+}
