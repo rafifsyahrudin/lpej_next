@@ -1,19 +1,18 @@
 import {
+  Container,
   Box,
   Button,
-  Container,
+  TableContainer,
   Paper,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
   TableHead,
   TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import React from "react";
-import prisma from "@/config/prisma";
 import Link from "next/link";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import prisma from "@/config/prisma";
 
 export default async function Page() {
   const foundAllUser = await prisma.user.findMany({

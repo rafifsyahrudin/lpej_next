@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
 import MyNav, { TMenu } from "./_components/MyNav";
 import { PropsWithChildren, ReactNode } from "react";
 import PostAddIcon from "@mui/icons-material/PostAddOutlined";
+import HomeIcon from "@mui/icons-material/HomeOutlined";
 import TocIcon from "@mui/icons-material/TocOutlined";
 import PeopleIcon from "@mui/icons-material/PeopleOutlineOutlined";
 import ReportIcon from "@mui/icons-material/Report";
@@ -28,12 +29,10 @@ export default async function RootLayout({
   admin,
   atasan,
   staf,
-  tamu,
 }: PropsWithChildren<{
   admin: ReactNode;
   atasan: ReactNode;
   staf: ReactNode;
-  tamu: ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
 
@@ -42,6 +41,11 @@ export default async function RootLayout({
       case "Staf":
         menu = {
           main: [
+            {
+              icon: <HomeIcon />,
+              name: "Dashboard",
+              route: "/",
+            },
             {
               icon: <PostAddIcon />,
               name: "Buat Laporan",
@@ -69,13 +73,30 @@ export default async function RootLayout({
         break;
       case "Atasan":
         menu = {
-          main: [],
-          secondary: [],
+          main: [
+            {
+              icon: <HomeIcon />,
+              name: "Dashboard",
+              route: "/",
+            },
+          ],
+          secondary: [
+            {
+              icon: <ReportIcon />,
+              name: "Tentang",
+              route: "/tentang",
+            },
+          ],
         };
         break;
       case "Admin":
         menu = {
           main: [
+            {
+              icon: <HomeIcon />,
+              name: "Dashboard",
+              route: "/",
+            },
             {
               icon: <PeopleIcon />,
               name: "Kelola User",

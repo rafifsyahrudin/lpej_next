@@ -11,13 +11,11 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import Badge from "@mui/material/Badge";
 import Link from "@mui/material/Link";
 import NextLink from "next/link";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
@@ -174,7 +172,9 @@ export default function MyNav({
             </Typography>
             <IconButton
               color="inherit"
-              onClick={() => signOut({ redirect: true })}
+              onClick={() => {
+                signOut({ redirect: true, callbackUrl: "/" });
+              }}
             >
               <LogoutIcon />
             </IconButton>

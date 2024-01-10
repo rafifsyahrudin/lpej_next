@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/config/prisma";
 import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { TTambahUserForm } from "@/app/user/tambah/_client/FormTambahPengguna";
+import { TFormTambahUser } from "@/app/user/tambah/_client/FormTambahUser";
 
 export async function POST(req: NextRequest) {
-  const reqData = (await req.json()) as TTambahUserForm;
+  const reqData = (await req.json()) as TFormTambahUser;
 
   const createdUser = await prisma.user.create({
     data: {

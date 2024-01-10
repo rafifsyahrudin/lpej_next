@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { Pegawai, Role } from "@prisma/client";
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { UseFormReset, useForm } from "react-hook-form";
 import axios from "axios";
 
 export type TFormTambahUser = {
@@ -32,30 +32,17 @@ export type TFormTambahUser = {
 
 export default function FormTambahUser({
   listAtasan,
+  onSubmit,
 }: {
   listAtasan: Pegawai[];
+  onSubmit: (
+    data: TFormTambahUser,
+    reset: UseFormReset<TFormTambahUser>
+  ) => void;
 }) {
   const { watch, register, reset, handleSubmit } = useForm<TFormTambahUser>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const handleTambahPengguna = async (data: TFormTambahUser) => {
-    try {
-      setIsLoading(true);
-      const res = await axios({
-        url: "/api/user",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data,
-      });
-
-      reset();
-    } catch (error) {
-      alert(error);
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(data, reset);
   };
 
   return (
