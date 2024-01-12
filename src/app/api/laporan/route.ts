@@ -3,7 +3,7 @@ import prisma from "@/config/prisma";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { TFormBuatLaporan } from "@/app/laporan/buat/_client/FormBuatLaporan";
+import { TFormBuatLaporan } from "@/app/@staf/laporan/buat/_client/FormBuatLaporan";
 
 export async function GET(req: NextRequest) {
   const foundAllLaporan = await prisma.laporan.findMany();
@@ -22,14 +22,25 @@ export async function POST(req: NextRequest) {
 
   const reqBody = (await req.json()) as TFormBuatLaporan[];
 
-  const laporan: Prisma.LaporanCreateManyInput[] = reqBody.map((l) => ({
-    ...l,
-    tanggal: new Date(l.tanggal).toISOString(),
-    pegawaiId: Number(session.user.id),
-  }));
+  const result = await prisma.$transaction(async (tx) => {
+    for (const b of reqBody) {
+      await tx.laporan.create({
+        data: {
+          tanggal: new Date(b.tanggal).toISOString(),
+          lokasi: b.lokasi,
+          kegiatan: b.kegiatan,
+          rincianKegiatan: b.rincianKegiatan,
+          pegawaiId: Number(session.user.id),
+          foto: {
+            createMany: {
+              data: b.foto,
+            },
+          },
+        },
+      });
+    }
 
-  const result = await prisma.laporan.createMany({
-    data: laporan,
+    return reqBody;
   });
 
   return NextResponse.json(result);

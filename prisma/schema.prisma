@@ -16,6 +16,12 @@ enum Role {
   Staf
 }
 
+enum StatusLaporanBulanan {
+  MENUNGGU
+  DITERIMA
+  DITOLAK
+}
+
 model User {
   pegawaiId Int    @id @default(autoincrement())
   password  String
@@ -33,10 +39,24 @@ model Pegawai {
 
   atasanId Int?
 
-  atasan  Pegawai?  @relation("AtasanPegawai", fields: [atasanId], references: [id])
-  pegawai Pegawai[] @relation("AtasanPegawai")
+  user           User             @relation(fields: [id], references: [pegawaiId])
+  atasan         Pegawai?         @relation("AtasanPegawai", fields: [atasanId], references: [id])
+  pegawai        Pegawai[]        @relation("AtasanPegawai")
+  laporan        Laporan[]
+  laporanBulanan LaporanBulanan[]
+}
+
+model LaporanBulanan {
+  id    Int      @id @default(autoincrement())
+  bulan DateTime
+  path  String?
+
+  pegawaiId Int
+
+  status StatusLaporanBulanan?
+
   laporan Laporan[]
-  user    User      @relation(fields: [id], references: [pegawaiId])
+  pegawai Pegawai   @relation(fields: [pegawaiId], references: [id])
 }
 
 model Laporan {
@@ -46,10 +66,12 @@ model Laporan {
   rincianKegiatan String?
   lokasi          String
 
-  pegawaiId Int
+  pegawaiId        Int
+  laporanBulananId Int?
 
-  foto    LaporanFoto[]
-  pegawai Pegawai       @relation(fields: [pegawaiId], references: [id])
+  foto           LaporanFoto[]
+  pegawai        Pegawai         @relation(fields: [pegawaiId], references: [id])
+  laporanBulanan LaporanBulanan? @relation(fields: [laporanBulananId], references: [id])
 }
 
 model LaporanFoto {
@@ -58,5 +80,5 @@ model LaporanFoto {
 
   laporanId Int
 
-  Laporan Laporan @relation(fields: [laporanId], references: [id])
+  laporan Laporan @relation(fields: [laporanId], references: [id])
 }

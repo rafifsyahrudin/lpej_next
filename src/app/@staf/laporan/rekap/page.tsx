@@ -16,7 +16,11 @@ export default async function Page() {
       id: Number(session.user.id),
     },
     include: {
-      laporan: true,
+      laporan: {
+        include: {
+          foto: true,
+        },
+      },
     },
   });
 

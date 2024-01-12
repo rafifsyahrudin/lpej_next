@@ -1,13 +1,41 @@
 "use client";
 
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
-import { Laporan } from "@prisma/client";
+import { Laporan, LaporanFoto } from "@prisma/client";
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "Id", width: 200 },
-  { field: "tanggal", headerName: "Tanggal", width: 200 },
-  { field: "kegiatan", headerName: "Kegiatan", width: 200 },
-  { field: "lokasi", headerName: "Lokasi", width: 200 },
+  { field: "id", headerName: "Id", resizable: true, flex: 1 },
+  {
+    field: "tanggal",
+    headerName: "Tanggal",
+    resizable: true,
+    valueGetter: ({ value }) => value.toDateString(),
+    flex: 1,
+  },
+  { field: "kegiatan", headerName: "Kegiatan", resizable: true, flex: 1 },
+  { field: "lokasi", headerName: "Lokasi", resizable: true, flex: 1 },
+  {
+    field: "aksi",
+    headerName: "Aksi",
+    resizable: true,
+    flex: 1,
+    renderCell: () => (
+      <Stack
+        direction="row"
+        sx={{
+          width: "100%",
+        }}
+      >
+        <Button size="small" variant="outlined">
+          Detail
+        </Button>
+        <Button size="small" variant="outlined">
+          Delete
+        </Button>
+      </Stack>
+    ),
+  },
   // {
   //   field: "fullName",
   //   headerName: "Full name",
@@ -19,7 +47,11 @@ const columns: GridColDef[] = [
   // },
 ];
 
-export default function TableRekapLaporan({ laporan }: { laporan: Laporan[] }) {
+export default function TableRekapLaporan({
+  laporan,
+}: {
+  laporan: (Laporan & { foto: LaporanFoto[] })[];
+}) {
   return (
     <DataGrid
       rows={laporan}
@@ -29,6 +61,7 @@ export default function TableRekapLaporan({ laporan }: { laporan: Laporan[] }) {
           paginationModel: { page: 0, pageSize: 5 },
         },
       }}
+      getRowHeight={(p) => "auto"}
       pageSizeOptions={[5, 10]}
       checkboxSelection
     />

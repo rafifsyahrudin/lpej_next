@@ -11,7 +11,6 @@ import {
   TextField,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOnOutlined";
-
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import {
@@ -20,12 +19,18 @@ import {
   useFieldArray,
   useForm,
 } from "react-hook-form";
+import {
+  UploadDropzone,
+  UploadDropzoneConfig,
+} from "@bytescale/upload-widget-react";
+import { LaporanFoto } from "@prisma/client";
 
 export type TFormBuatLaporan = {
   tanggal: string;
   lokasi: string;
   kegiatan: string;
   rincianKegiatan: string;
+  foto: Pick<LaporanFoto, "path">[];
 };
 
 export default function FormBuatLaporan({
@@ -36,7 +41,7 @@ export default function FormBuatLaporan({
     reset: UseFormReset<{ data: TFormBuatLaporan[] }>
   ) => void;
 }) {
-  const { register, control, handleSubmit, watch, reset } = useForm<{
+  const { register, control, handleSubmit, watch, reset, setValue } = useForm<{
     data: TFormBuatLaporan[];
   }>({
     values: {
@@ -46,6 +51,7 @@ export default function FormBuatLaporan({
           lokasi: "",
           kegiatan: "",
           rincianKegiatan: "",
+          foto: [],
         },
       ],
     },
@@ -125,6 +131,40 @@ export default function FormBuatLaporan({
                     {...register(`data.${i}.rincianKegiatan`)}
                   />
                 </Grid>
+                <Grid item xs={12}>
+                  <UploadDropzone
+                    options={{
+                      apiKey: "public_kW15brZqsP4ggN5cedcqXwRYgxGg",
+                      showFinishButton: false, // Note: You must use 'onUpdate' if you set 'showFinishButton: false' (default).
+                      showRemoveButton: false,
+                      multi: true,
+                      styles: {
+                        colors: {
+                          primary: "#377dff",
+                        },
+                      },
+                      editor: {
+                        images: {
+                          allowResizeOnMove: false,
+                          crop: false,
+                          preview: true,
+                        },
+                      },
+                    }}
+                    width="100%"
+                    height="200px"
+                    onUpdate={(e) => {
+                      if (e.uploadedFiles.length) {
+                        setValue(
+                          `data.${i}.foto`,
+                          e.uploadedFiles.map((uf) => ({
+                            path: uf.fileUrl,
+                          }))
+                        );
+                      }
+                    }}
+                  />
+                </Grid>
               </Grid>
             </Paper>
           ))}
@@ -142,6 +182,7 @@ export default function FormBuatLaporan({
                 lokasi: "",
                 kegiatan: "Mendesain",
                 rincianKegiatan: "mendesain",
+                foto: [],
               });
             }}
           >

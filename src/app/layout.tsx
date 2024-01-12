@@ -7,6 +7,7 @@ import PostAddIcon from "@mui/icons-material/PostAddOutlined";
 import HomeIcon from "@mui/icons-material/HomeOutlined";
 import TocIcon from "@mui/icons-material/TocOutlined";
 import PeopleIcon from "@mui/icons-material/PeopleOutlineOutlined";
+import GroupsIcon from "@mui/icons-material/GroupsOutlined";
 import ReportIcon from "@mui/icons-material/Report";
 import BookIcon from "@mui/icons-material/BookOutlined";
 import { getServerSession } from "next-auth";
@@ -78,6 +79,16 @@ export default async function RootLayout({
               icon: <HomeIcon />,
               name: "Dashboard",
               route: "/",
+            },
+            {
+              icon: <BookIcon />,
+              name: "Kelola Laporan Staf",
+              route: "/laporan-staf",
+            },
+            {
+              icon: <GroupsIcon />,
+              name: "Kelola Staf",
+              route: "/staf",
             },
           ],
           secondary: [
