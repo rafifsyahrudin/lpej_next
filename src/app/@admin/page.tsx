@@ -1,13 +1,5 @@
-import { Container, Paper } from "@mui/material";
-import React from "react";
-import SectionDashboard from "./_client/SectionDashboard";
+import _Page from "./_page";
 
-export default function Page() {
-  return (
-    <>
-      <Container>
-        <SectionDashboard />
-      </Container>
-    </>
-  );
+export default function AdminPage() {
+  return <_Page />;
 }

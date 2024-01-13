@@ -1,5 +1,5 @@
-import React from "react";
+import _Page from "./_page";
 
-export default function Page() {
-  return <div>Atasan</div>;
+export default function AtasanPage() {
+  return <_Page />;
 }

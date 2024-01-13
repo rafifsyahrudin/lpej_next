@@ -50,17 +50,17 @@ export default async function RootLayout({
             {
               icon: <PostAddIcon />,
               name: "Buat Laporan",
-              route: "/laporan/buat",
+              route: "/kelola-laporan/buat",
             },
             {
               icon: <TocIcon />,
               name: "Laporan Bulanan",
-              route: "/laporan/bulanan",
+              route: "/kelola-laporan/bulanan",
             },
             {
               icon: <BookIcon />,
               name: "Rekap Laporan",
-              route: "/laporan/rekap",
+              route: "/kelola-laporan/rekap",
             },
           ],
           secondary: [
@@ -83,12 +83,12 @@ export default async function RootLayout({
             {
               icon: <BookIcon />,
               name: "Kelola Laporan Staf",
-              route: "/laporan-staf",
+              route: "/kelola-laporan-staf",
             },
             {
               icon: <GroupsIcon />,
               name: "Kelola Staf",
-              route: "/staf",
+              route: "/kelola-staf",
             },
           ],
           secondary: [
@@ -111,7 +111,7 @@ export default async function RootLayout({
             {
               icon: <PeopleIcon />,
               name: "Kelola User",
-              route: "/user",
+              route: "/kelola-user",
             },
           ],
           secondary: [

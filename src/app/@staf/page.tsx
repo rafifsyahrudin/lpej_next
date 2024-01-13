@@ -1,5 +1,5 @@
-import React from "react";
+import _Page from "./_page";
 
-export default function Page() {
-  return <div>Staf</div>;
+export default function StafPage() {
+  return <_Page />;
 }
