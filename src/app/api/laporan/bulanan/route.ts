@@ -1,19 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/config/prisma";
-import { LaporanBulanan } from "@prisma/client";
+import {
+  Laporan,
+  LaporanBulanan,
+  LaporanFoto,
+  Status,
+  StatusLaporanBulanan,
+} from "@prisma/client";
+import moment from "moment";
 
 export async function POST(req: NextRequest) {
   const reqData = (await req.json()) as Pick<
     LaporanBulanan,
-    "bulan" | "path"
-  > & { pegawaiId: string };
+    "bulan" | "pegawaiId" | "path"
+  > & { laporan: (Laporan & { foto: LaporanFoto[] })[] };
 
   const createdLaporanBulanan = await prisma.laporanBulanan.create({
     data: {
-      pegawaiId: Number(reqData.pegawaiId),
-      bulan: reqData.bulan,
-      path: reqData.path,
+      bulan: moment(reqData.bulan).toISOString(true),
+      pegawaiId: reqData.pegawaiId,
+      // status: {
+      //   create: {
+      //     tanggal: moment().toISOString(true),
+      //     status: Status.MENUNGGU,
+      //     pesan: "Laporan Sedang direview..",
+      //   },
+      // },
     },
+  });
+
+  reqData.laporan.forEach(async (l) => {
+    await prisma.laporan.create({
+      data: {
+        tanggal: moment(l.tanggal).toISOString(true),
+        lokasi: l.lokasi,
+        kegiatan: l.kegiatan,
+        rincianKegiatan: l.rincianKegiatan,
+        laporanBulananId: createdLaporanBulanan.id,
+        pegawaiId: reqData.pegawaiId,
+        foto: {
+          createMany: {
+            data: l.foto,
+          },
+        },
+      },
+    });
   });
 
   return NextResponse.json(createdLaporanBulanan, {

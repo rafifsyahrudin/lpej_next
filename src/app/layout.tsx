@@ -63,13 +63,7 @@ export default async function RootLayout({
               route: "/kelola-laporan/rekap",
             },
           ],
-          secondary: [
-            {
-              icon: <ReportIcon />,
-              name: "Tentang",
-              route: "/tentang",
-            },
-          ],
+          secondary: [],
         };
         break;
       case "Atasan":
@@ -91,13 +85,7 @@ export default async function RootLayout({
               route: "/kelola-staf",
             },
           ],
-          secondary: [
-            {
-              icon: <ReportIcon />,
-              name: "Tentang",
-              route: "/tentang",
-            },
-          ],
+          secondary: [],
         };
         break;
       case "Admin":
@@ -114,13 +102,7 @@ export default async function RootLayout({
               route: "/kelola-user",
             },
           ],
-          secondary: [
-            {
-              icon: <ReportIcon />,
-              name: "Tentang",
-              route: "/tentang",
-            },
-          ],
+          secondary: [],
         };
         break;
     }

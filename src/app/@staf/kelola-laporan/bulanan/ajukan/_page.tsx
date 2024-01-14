@@ -5,7 +5,7 @@ import React from "react";
 import FormAjukanLaporanBulanan from "./_client/FormAjukanLaporanBulanan";
 import { Session } from "next-auth";
 
-export default function _Page({ session }: { session: Session | null }) {
+export default function _Page({ session }: { session: Session }) {
   return (
     <>
       <Container>

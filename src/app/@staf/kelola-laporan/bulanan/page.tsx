@@ -23,6 +23,7 @@ export default async function Page() {
           },
         },
         laporan: true,
+        status: true,
       },
     });
 

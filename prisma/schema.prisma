@@ -16,7 +16,7 @@ enum Role {
   Staf
 }
 
-enum StatusLaporanBulanan {
+enum Status {
   MENUNGGU
   DITERIMA
   DITOLAK
@@ -46,6 +46,17 @@ model Pegawai {
   laporanBulanan LaporanBulanan[]
 }
 
+model StatusLaporanBulanan {
+  id      Int      @id @default(autoincrement())
+  tanggal DateTime
+  pesan   String?
+  status  Status
+
+  laporanBulananId Int
+
+  LaporanBulanan LaporanBulanan @relation(fields: [laporanBulananId], references: [id])
+}
+
 model LaporanBulanan {
   id    Int      @id @default(autoincrement())
   bulan DateTime
@@ -53,10 +64,9 @@ model LaporanBulanan {
 
   pegawaiId Int
 
-  status StatusLaporanBulanan?
-
+  status  StatusLaporanBulanan[]
   laporan Laporan[]
-  pegawai Pegawai   @relation(fields: [pegawaiId], references: [id])
+  pegawai Pegawai                @relation(fields: [pegawaiId], references: [id])
 }
 
 model Laporan {
@@ -80,5 +90,5 @@ model LaporanFoto {
 
   laporanId Int
 
-  laporan Laporan @relation(fields: [laporanId], references: [id])
+  laporan Laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
 }

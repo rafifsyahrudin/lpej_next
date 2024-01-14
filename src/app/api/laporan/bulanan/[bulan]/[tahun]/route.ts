@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/config/prisma";
-import { StatusLaporanBulanan } from "@prisma/client";
+import { Status, StatusLaporanBulanan } from "@prisma/client";
+import moment from "moment";
 
 export async function GET(
   req: NextRequest,
@@ -26,6 +27,10 @@ export async function GET(
       pegawaiId: {
         equals: Number(pegawaiId),
       },
+    },
+    include: {
+      laporan: true,
+      status: true,
     },
   });
 
@@ -61,7 +66,13 @@ export async function POST(
     data: {
       pegawaiId: Number(pegawaiId),
       bulan: new Date(Number(params.tahun), Number(params.bulan)),
-      status: StatusLaporanBulanan.MENUNGGU,
+      status: {
+        create: {
+          status: Status.MENUNGGU,
+          tanggal: moment().toISOString(true),
+          pesan: "Laporan Sedang direview..",
+        },
+      },
     },
   });
 

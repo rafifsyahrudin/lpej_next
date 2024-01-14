@@ -18,8 +18,9 @@ import SaveIcon from "@mui/icons-material/Save";
 import FormBuatLaporan, { TFormBuatLaporan } from "./_client/FormBuatLaporan";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
 import axios from "axios";
+import { Session } from "next-auth";
 
-export default function _Page() {
+export default function _Page({ session }: { session: Session }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<
     { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
@@ -72,12 +73,16 @@ export default function _Page() {
                 try {
                   setIsLoading(true);
                   const res = await axios({
-                    url: "/api/laporan",
+                    url: "/api/laporan/bulanan",
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
                     },
-                    data,
+                    data: {
+                      pegawaiId: session.user.id,
+                      bulan: data.bulan,
+                      laporan: data.laporan,
+                    },
                   });
                   reset();
                   setSnackbar((oldV) => ({

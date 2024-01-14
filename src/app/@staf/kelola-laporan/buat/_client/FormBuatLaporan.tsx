@@ -9,11 +9,13 @@ import {
   Paper,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOnOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
 import {
+  Controller,
   UseFormRegister,
   UseFormReset,
   useFieldArray,
@@ -24,6 +26,10 @@ import {
   UploadDropzoneConfig,
 } from "@bytescale/upload-widget-react";
 import { LaporanFoto } from "@prisma/client";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment, { Moment } from "moment";
+import { useEffect, useMemo, useState } from "react";
 
 export type TFormBuatLaporan = {
   tanggal: string;
@@ -37,36 +43,78 @@ export default function FormBuatLaporan({
   onSubmit,
 }: {
   onSubmit: (
-    data: TFormBuatLaporan[],
-    reset: UseFormReset<{ data: TFormBuatLaporan[] }>
+    data: { laporan: TFormBuatLaporan[]; bulan: string },
+    reset: () => void
   ) => void;
 }) {
-  const { register, control, handleSubmit, watch, reset, setValue } = useForm<{
-    data: TFormBuatLaporan[];
-  }>({
-    values: {
-      data: [
-        {
-          tanggal: "",
-          lokasi: "",
-          kegiatan: "",
-          rincianKegiatan: "",
-          foto: [],
-        },
-      ],
-    },
-  });
-  const { fields, remove, append } = useFieldArray({
+  const [periodeLaporan, setPeriodeLaporan] = useState<Moment>(moment());
+  const [usedDate, setUsedDate] = useState<Set<number>>(new Set());
+  const { register, control, handleSubmit, watch, reset, setValue, getValues } =
+    useForm<{
+      data: TFormBuatLaporan[];
+    }>({
+      values: {
+        data: [],
+      },
+    });
+  const { fields, remove, append, update } = useFieldArray({
     name: "data",
     control,
   });
+  useMemo(() => {
+    setValue(
+      "data",
+      getValues("data").map((v) => {
+        if (!v.tanggal) {
+          return {
+            ...v,
+            tanggal: moment(periodeLaporan).date(1).format("MM/DD/YYYY"),
+          };
+        }
+
+        return {
+          ...v,
+          tanggal: moment(v.tanggal)
+            .month(periodeLaporan.month())
+            .year(periodeLaporan.year())
+            .format("MM/DD/YYYY"),
+        };
+      })
+    );
+  }, [periodeLaporan]);
+
   const handleBuatLaporan = async ({ data }: { data: TFormBuatLaporan[] }) => {
-    onSubmit(data, reset);
+    onSubmit(
+      {
+        bulan: periodeLaporan.format("MM/DD/YYYY"),
+        laporan: data,
+      },
+      () => {
+        setUsedDate(new Set());
+        reset();
+      }
+    );
   };
 
   return (
     <>
       <Box component="form" onSubmit={handleSubmit(handleBuatLaporan)}>
+        <Box
+          sx={{
+            mb: 2,
+          }}
+        >
+          <LocalizationProvider dateAdapter={AdapterMoment}>
+            <DatePicker
+              label={"Periode Laporan"}
+              views={["month", "year"]}
+              value={periodeLaporan}
+              onChange={(m) => {
+                if (m) setPeriodeLaporan(m);
+              }}
+            />
+          </LocalizationProvider>
+        </Box>
         <Stack spacing={2}>
           {fields.map((field, i) => (
             <Paper
@@ -80,13 +128,48 @@ export default function FormBuatLaporan({
                 <Grid item container xs={6} alignContent="start" spacing={2}>
                   <Grid item xs={6}>
                     <InputLabel>Tanggal</InputLabel>
-                    <TextField
-                      id="tanggal"
-                      type="date"
-                      fullWidth
-                      variant="outlined"
-                      {...register(`data.${i}.tanggal`)}
-                    />
+                    <LocalizationProvider dateAdapter={AdapterMoment}>
+                      <Controller
+                        control={control}
+                        name={`data.${i}.tanggal`}
+                        render={({ field }) => (
+                          <DatePicker
+                            value={moment(field.value)}
+                            inputRef={field.ref}
+                            onChange={(date) => {
+                              if (date) {
+                                field.onChange(date.format("MM/DD/YYYY"));
+                                setUsedDate((oldV) => {
+                                  const newUsedDate = new Set(oldV);
+                                  newUsedDate.delete(
+                                    moment(field.value).date()
+                                  );
+                                  newUsedDate.add(date.date());
+                                  return newUsedDate;
+                                });
+                              }
+                            }}
+                            slots={{
+                              calendarHeader: () => null,
+                            }}
+                            slotProps={{
+                              textField: {
+                                InputProps: {
+                                  readOnly: true,
+                                },
+                              },
+                            }}
+                            shouldDisableMonth={(m) => {
+                              return m.month() !== periodeLaporan.month();
+                            }}
+                            shouldDisableDate={(m) => {
+                              return usedDate.has(m.date());
+                            }}
+                            // views={["day"]}
+                          />
+                        )}
+                      />
+                    </LocalizationProvider>
                   </Grid>
                   <Grid item xs={6}>
                     <InputLabel>Lokasi</InputLabel>
@@ -178,7 +261,7 @@ export default function FormBuatLaporan({
             }}
             onClick={() => {
               append({
-                tanggal: "",
+                tanggal: moment(periodeLaporan).format("MM/DD/YYYY"),
                 lokasi: "",
                 kegiatan: "Mendesain",
                 rincianKegiatan: "mendesain",
