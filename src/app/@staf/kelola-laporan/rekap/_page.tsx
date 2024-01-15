@@ -97,6 +97,7 @@ export default function _Page({
                 r.refresh();
               } finally {
                 setIsLoading(false);
+                r.refresh();
               }
             }}
             size="small"

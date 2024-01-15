@@ -19,8 +19,10 @@ import FormBuatLaporan, { TFormBuatLaporan } from "./_client/FormBuatLaporan";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
 import axios from "axios";
 import { Session } from "next-auth";
+import { useRouter } from "next/navigation";
 
 export default function _Page({ session }: { session: Session }) {
+  const r = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<
     { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
@@ -101,6 +103,7 @@ export default function _Page({ session }: { session: Session }) {
                   }));
                 } finally {
                   setIsLoading(false);
+                  r.refresh();
                 }
               }}
             />

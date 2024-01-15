@@ -12,8 +12,10 @@ import React, { useState } from "react";
 import FormTambahUser from "./_client/FormTambahUser";
 import { Pegawai } from "@prisma/client";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function _Page({ listAtasan }: { listAtasan: Pegawai[] }) {
+  const r = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<
     { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
@@ -89,6 +91,7 @@ export default function _Page({ listAtasan }: { listAtasan: Pegawai[] }) {
                 }));
               } finally {
                 setIsLoading(false);
+                r.refresh();
               }
             }}
           />

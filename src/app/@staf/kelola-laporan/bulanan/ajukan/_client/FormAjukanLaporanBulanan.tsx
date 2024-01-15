@@ -37,6 +37,7 @@ import z from "zod";
 import { Session } from "next-auth";
 import { stat } from "fs";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
+import { useRouter } from "next/navigation";
 
 export type TFormAjukanLaporanBulanan = {
   bulan: Date;
@@ -78,6 +79,7 @@ export default function FormAjukanLaporanBulanan({
 }: {
   session: Session;
 }) {
+  const r = useRouter();
   const { register, handleSubmit } = useForm<TFormAjukanLaporanBulanan>();
   const [laporanBulanan, setLaporanBulanan] = useState<
     | (LaporanBulanan & { laporan: Laporan[]; status: StatusLaporanBulanan[] })
@@ -217,6 +219,7 @@ export default function FormAjukanLaporanBulanan({
                     }));
                   } finally {
                     setIsLoading(false);
+                    r.refresh();
                   }
                 }}
               />
