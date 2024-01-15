@@ -22,6 +22,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { Tooltip } from "@mui/material";
 
 function Copyright(props: any) {
   return (
@@ -172,14 +173,16 @@ export default function MyNav({
             >
               E-LAPKIN | {nama}
             </Typography>
-            <IconButton
-              color="inherit"
-              onClick={() => {
-                signOut({ redirect: true, callbackUrl: "/" });
-              }}
-            >
-              <LogoutIcon />
-            </IconButton>
+            <Tooltip title="Sign Out">
+              <IconButton
+                color="inherit"
+                onClick={() => {
+                  signOut({ redirect: true, callbackUrl: "/" });
+                }}
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
