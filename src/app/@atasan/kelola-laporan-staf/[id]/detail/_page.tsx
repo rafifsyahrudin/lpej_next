@@ -16,6 +16,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
+import { Document, Page, pdfjs } from "react-pdf";
 import {
   LaporanBulanan,
   Pegawai,
@@ -47,6 +48,13 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
+import { getMonthName } from "@/utils/month-name";
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  `pdfjs-dist/build/pdf.worker.min.js`,
+  import.meta.url
+).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 function createData(
   name: string,
@@ -177,7 +185,7 @@ export default function _Page({
   laporanBulanan,
 }: {
   laporanBulanan: LaporanBulanan & {
-    pegawai: Pegawai;
+    pegawai: Pegawai & { atasan: Pegawai | null };
     status: StatusLaporanBulanan[];
     laporan: (Laporan & { foto: LaporanFoto[] })[];
   };
@@ -203,6 +211,7 @@ export default function _Page({
       pesan: "",
     },
   });
+  const [fileLaporan, setFileLaporan] = useState<string | null>(null);
   const r = useRouter();
   const handleClickOpen = (aksi: "DITOLAK" | "DITERIMA") => {
     setDialogAksi((oldV) => ({ ...oldV, isOpen: true, aksi }));
@@ -408,7 +417,139 @@ export default function _Page({
                 </TableBody>
               </Table>
             </TableContainer>
+
+            <Button
+              onClick={async () => {
+                try {
+                  setIsLoading(true);
+                  const resPdf = await axios({
+                    url: "https://api.hybiscus.dev/api/v1/build-report",
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "X-API-KEY":
+                        "P-H_NsTfhLotwj6QIZ2Z9EZ11dhgpJITbEDW8dg3mj4",
+                    },
+                    data: {
+                      type: "Report",
+                      options: {
+                        report_title: `Rekap Laporan`,
+                        report_byline: `${getMonthName(
+                          moment(laporanBulanan.bulan).month()
+                        )} ${new Date().getFullYear()}`,
+                        version_number: "0.1b",
+                      },
+                      components: [
+                        {
+                          type: "Section",
+                          options: {
+                            section_title: `Detail Kegiatan Selama Bulan ${getMonthName(
+                              moment(laporanBulanan.bulan).month()
+                            )}`,
+                            columns: 1,
+                          },
+                          components: [
+                            {
+                              type: "Table",
+                              options: {
+                                headings: [
+                                  "Id",
+                                  "Tanggal",
+                                  "Kegiatan",
+                                  "Lokasi",
+                                ],
+                                rows: laporanBulanan.laporan
+                                  .map((l) => {
+                                    const d = moment(l.tanggal);
+                                    return {
+                                      id: l.id,
+                                      tanggal: `${d.day()} ${getMonthName(
+                                        d.month()
+                                      )} ${d.year()}`,
+                                      kegiatan: l.kegiatan,
+                                      lokasi: l.lokasi,
+                                    };
+                                  })
+                                  .map((l) => Object.values(l)),
+                              },
+                            },
+                            {
+                              type: "Section",
+                              options: {
+                                section_title: `Mengetahui`,
+                                vertical_margin: 16,
+                                columns: 1,
+                                width: "1/3",
+                              },
+                              components: [
+                                {
+                                  type: "Image",
+                                  width: "1/4",
+                                  options: {
+                                    image_url:
+                                      "https://cdn.britannica.com/17/155017-050-9AC96FC8/Example-QR-code.jpg",
+                                    caption:
+                                      laporanBulanan.pegawai.atasan?.nama,
+                                    enable_border: false,
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  });
+                  const resUpdatedPdf = await axios({
+                    url: `/api/laporan/bulanan/update-pdf/${laporanBulanan.id}`,
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    data: {
+                      path: resPdf.data.task_id,
+                    },
+                  });
+                  console.log(resPdf);
+                  console.log(resUpdatedPdf);
+                } catch (error) {
+                  console.log(error);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+            >
+              Generate Laporan
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  setIsLoading(true);
+                  const res = await axios({
+                    url: `/api/laporan/bulanan/get/${laporanBulanan.id}`,
+                    method: "GET",
+                  });
+                  setFileLaporan(res.data.path);
+                } catch (error) {
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+            >
+              Load Laporan
+            </Button>
           </Paper>
+
+          {fileLaporan && (
+            <Box
+              component="iframe"
+              src={`https://api.hybiscus.dev/api/v1/get-report?task_id=${fileLaporan}&api_key=P-H_NsTfhLotwj6QIZ2Z9EZ11dhgpJITbEDW8dg3mj4`}
+              sx={{
+                width: "100%",
+                minHeight: 750,
+              }}
+            />
+          )}
         </Paper>
       </Container>
     </>

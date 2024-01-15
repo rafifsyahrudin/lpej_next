@@ -37,7 +37,7 @@ export default function _Page({
   });
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "Id", resizable: true, flex: 1 },
+    { field: "id", headerName: "Id", resizable: true, flex: 0.25 },
     {
       field: "tanggal",
       headerName: "Tanggal",
@@ -97,6 +97,7 @@ export default function _Page({
                 r.refresh();
               } finally {
                 setIsLoading(false);
+                r.refresh();
               }
             }}
             size="small"

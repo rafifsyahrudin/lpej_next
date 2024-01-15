@@ -10,9 +10,7 @@ export default function Dashboard({ nama }: { nama: string }) {
         sx={{
           mt: 4,
         }}
-      >
-        <Typography variant="h4">Selamat Datang {nama}</Typography>
-      </Container>
+      ></Container>
     </>
   );
 }

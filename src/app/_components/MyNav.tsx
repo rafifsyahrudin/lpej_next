@@ -22,6 +22,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { Tooltip } from "@mui/material";
 
 function Copyright(props: any) {
   return (
@@ -103,12 +104,14 @@ export type TMenu = {
 export type Props = {
   mainMenu: TMenu[];
   secondaryMenu: TMenu[];
+  nama: string;
 };
 
 export default function MyNav({
   children,
   mainMenu,
   secondaryMenu,
+  nama,
 }: React.PropsWithChildren<Props>) {
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
@@ -168,16 +171,18 @@ export default function MyNav({
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              App
+              E-LAPKIN | {nama}
             </Typography>
-            <IconButton
-              color="inherit"
-              onClick={() => {
-                signOut({ redirect: true, callbackUrl: "/" });
-              }}
-            >
-              <LogoutIcon />
-            </IconButton>
+            <Tooltip title="Sign Out">
+              <IconButton
+                color="inherit"
+                onClick={() => {
+                  signOut({ redirect: true, callbackUrl: "/" });
+                }}
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>

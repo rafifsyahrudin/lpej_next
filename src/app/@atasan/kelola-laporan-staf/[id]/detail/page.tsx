@@ -7,7 +7,11 @@ export default async function Page({ params }: { params: { id: string } }) {
       id: Number(params.id),
     },
     include: {
-      pegawai: true,
+      pegawai: {
+        include: {
+          atasan: true,
+        },
+      },
       laporan: {
         include: {
           foto: true,

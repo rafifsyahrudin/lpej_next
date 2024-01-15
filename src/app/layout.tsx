@@ -123,7 +123,11 @@ export default async function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <AppRouterCacheProvider>
-            <MyNav mainMenu={menu.main} secondaryMenu={menu.secondary}>
+            <MyNav
+              nama={session.user.nama}
+              mainMenu={menu.main}
+              secondaryMenu={menu.secondary}
+            >
               {staf}
             </MyNav>
           </AppRouterCacheProvider>
@@ -135,7 +139,11 @@ export default async function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <AppRouterCacheProvider>
-            <MyNav mainMenu={menu.main} secondaryMenu={menu.secondary}>
+            <MyNav
+              nama={session.user.nama}
+              mainMenu={menu.main}
+              secondaryMenu={menu.secondary}
+            >
               {atasan}
             </MyNav>
           </AppRouterCacheProvider>
@@ -147,7 +155,11 @@ export default async function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <AppRouterCacheProvider>
-            <MyNav mainMenu={menu.main} secondaryMenu={menu.secondary}>
+            <MyNav
+              nama={session.user.nama}
+              mainMenu={menu.main}
+              secondaryMenu={menu.secondary}
+            >
               {admin}
             </MyNav>
           </AppRouterCacheProvider>
