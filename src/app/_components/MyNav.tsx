@@ -20,7 +20,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Tooltip } from "@mui/material";
 
@@ -113,6 +113,7 @@ export default function MyNav({
   secondaryMenu,
   nama,
 }: React.PropsWithChildren<Props>) {
+  const r = useRouter();
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -176,8 +177,12 @@ export default function MyNav({
             <Tooltip title="Sign Out">
               <IconButton
                 color="inherit"
-                onClick={() => {
-                  signOut({ redirect: true, callbackUrl: "/" });
+                onClick={async () => {
+                  await signOut({ redirect: false, callbackUrl: "/sign-in" });
+                  r.replace("/sign-in", {
+                    scroll: true,
+                  });
+                  r.refresh();
                 }}
               >
                 <LogoutIcon />

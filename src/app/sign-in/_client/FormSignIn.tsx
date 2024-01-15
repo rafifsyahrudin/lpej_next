@@ -16,7 +16,16 @@ import { signIn } from "next-auth/react";
 import Logo from "../../../../public/logo_bakohumas.png";
 import Bg from "../../../../public/bg.jpg";
 import Image from "next/image";
-import { Stack } from "@mui/material";
+import {
+  Alert,
+  AlertColor,
+  Snackbar,
+  SnackbarOrigin,
+  Stack,
+} from "@mui/material";
+import MyLoadingBox from "@/app/_components/MyLoadingBox";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 function Copyright(props: any) {
   return (
@@ -42,14 +51,45 @@ type TFormSignIn = {
 };
 
 export default function FormSignIn() {
+  const r = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [snackbar, setSnackbar] = useState<
+    { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
+  >({
+    vertical: "top",
+    horizontal: "center",
+    isOpen: false,
+    message: "",
+  });
   const { register, handleSubmit } = useForm<TFormSignIn>();
   const onSubmit = async (data: TFormSignIn) => {
-    const res = await signIn("credentials", {
-      redirect: true,
-      ...data,
-    });
-
-    console.log(res);
+    try {
+      setIsLoading(true);
+      const res = await signIn("credentials", {
+        redirect: false,
+        ...data,
+      });
+      if (res?.error) {
+        setSnackbar((oldV) => ({
+          ...oldV,
+          isOpen: true,
+          message: "NIP atau password salah!",
+          severity: "error",
+        }));
+      } else {
+        setSnackbar((oldV) => ({
+          ...oldV,
+          isOpen: true,
+          message: "Login berhasil",
+          severity: "success",
+        }));
+        r.replace("/");
+        r.refresh();
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,6 +100,32 @@ export default function FormSignIn() {
     >
       <Container component="main" maxWidth="xs">
         <CssBaseline />
+        <Snackbar
+          anchorOrigin={{
+            vertical: snackbar.vertical,
+            horizontal: snackbar.horizontal,
+          }}
+          open={snackbar.isOpen}
+          onClose={() => {
+            setSnackbar({
+              ...snackbar,
+              isOpen: false,
+            });
+          }}
+          key={snackbar.horizontal + snackbar.vertical}
+        >
+          <Alert
+            onClose={() => {
+              setSnackbar({
+                ...snackbar,
+                isOpen: false,
+              });
+            }}
+            severity={snackbar.severity}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
         <Box
           sx={{
             marginTop: 8,
@@ -85,45 +151,47 @@ export default function FormSignIn() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Box
-            component="form"
-            method="POST"
-            action="/api/auth/callback/credentials"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{ mt: 1 }}
-          >
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="nip"
-              label="NIP"
-              autoComplete="nip"
-              autoFocus
-              {...register("nip")}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Password"
-              type="password"
-              id="password"
-              {...register("password")}
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+          <MyLoadingBox isLoading={isLoading}>
+            <Box
+              component="form"
+              method="POST"
+              action="/api/auth/callback/credentials"
+              onSubmit={handleSubmit(onSubmit)}
+              sx={{ mt: 1 }}
             >
-              Sign In
-            </Button>
-          </Box>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="nip"
+                label="NIP"
+                autoComplete="nip"
+                autoFocus
+                {...register("nip")}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Password"
+                type="password"
+                id="password"
+                {...register("password")}
+              />
+              <FormControlLabel
+                control={<Checkbox value="remember" color="primary" />}
+                label="Remember me"
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          </MyLoadingBox>
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
