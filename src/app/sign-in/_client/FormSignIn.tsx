@@ -13,6 +13,10 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
+import Logo from "../../../../public/logo_bakohumas.png";
+import Bg from "../../../../public/bg.jpg";
+import Image from "next/image";
+import { Stack } from "@mui/material";
 
 function Copyright(props: any) {
   return (
@@ -24,7 +28,7 @@ function Copyright(props: any) {
     >
       {"Copyright © "}
       <Link color="inherit" href="https://mui.com/">
-        Your Website
+        Bakohumas Diskominfo Palembang
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -49,7 +53,11 @@ export default function FormSignIn() {
   };
 
   return (
-    <>
+    <Box
+      sx={{
+        backgroundImage: `url(${Bg})`,
+      }}
+    >
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
@@ -60,9 +68,20 @@ export default function FormSignIn() {
             alignItems: "center",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
+          <Stack
+            sx={{
+              color: "primary.main",
+              textAlign: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h3" fontWeight="bold">
+              E-LAPKIN
+            </Typography>
+            <Typography variant="h6">Laporan Kinerja Tenaga Ahli</Typography>
+          </Stack>
+          <Image src={Logo} width={100} height={100} alt="logo" />
+
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
@@ -108,6 +127,6 @@ export default function FormSignIn() {
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
-    </>
+    </Box>
   );
 }
