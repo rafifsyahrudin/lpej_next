@@ -103,12 +103,14 @@ export type TMenu = {
 export type Props = {
   mainMenu: TMenu[];
   secondaryMenu: TMenu[];
+  nama: string;
 };
 
 export default function MyNav({
   children,
   mainMenu,
   secondaryMenu,
+  nama,
 }: React.PropsWithChildren<Props>) {
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
@@ -168,7 +170,7 @@ export default function MyNav({
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              App
+              E-LAPKIN | {nama}
             </Typography>
             <IconButton
               color="inherit"
