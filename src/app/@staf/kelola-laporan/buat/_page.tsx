@@ -11,7 +11,7 @@ import {
   SnackbarOrigin,
   Stack,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save";
@@ -20,18 +20,19 @@ import MyLoadingBox from "@/app/_components/MyLoadingBox";
 import axios from "axios";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
+import { MyNavContext } from "@/app/_components/MyNav";
+import { LaporanBulanan } from "@prisma/client";
 
-export default function _Page({ session }: { session: Session }) {
+export default function _Page({
+  session,
+  laporanBulananPegawai,
+}: {
+  session: Session;
+  laporanBulananPegawai: LaporanBulanan[];
+}) {
   const r = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<
-    { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
-  >({
-    vertical: "top",
-    horizontal: "center",
-    isOpen: false,
-    message: "",
-  });
+  const [snackbar, setSnackbar] = useContext(MyNavContext);
 
   return (
     <>
@@ -43,34 +44,9 @@ export default function _Page({ session }: { session: Session }) {
             p: 2,
           }}
         >
-          <Snackbar
-            anchorOrigin={{
-              vertical: snackbar.vertical,
-              horizontal: snackbar.horizontal,
-            }}
-            open={snackbar.isOpen}
-            onClose={() => {
-              setSnackbar({
-                ...snackbar,
-                isOpen: false,
-              });
-            }}
-            key={snackbar.horizontal + snackbar.vertical}
-          >
-            <Alert
-              onClose={() => {
-                setSnackbar({
-                  ...snackbar,
-                  isOpen: false,
-                });
-              }}
-              severity={snackbar.severity}
-            >
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
           <MyLoadingBox isLoading={isLoading}>
             <FormBuatLaporan
+              laporanBulananPegawai={laporanBulananPegawai}
               onSubmit={async (data, reset) => {
                 try {
                   setIsLoading(true);

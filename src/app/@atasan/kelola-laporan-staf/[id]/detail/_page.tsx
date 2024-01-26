@@ -40,6 +40,7 @@ import {
   Grid,
   Snackbar,
   SnackbarOrigin,
+  Stack,
   TextField,
 } from "@mui/material";
 import moment from "moment";
@@ -49,42 +50,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
 import { getMonthName } from "@/utils/month-name";
+import { createPdfLaporan } from "@/utils/create-pdf-laporan";
+import { jsPDF } from "jspdf";
+import { MyNavContext } from "@/app/_components/MyNav";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   `pdfjs-dist/build/pdf.worker.min.js`,
   import.meta.url
 ).toString();
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number,
-  price: number
-) {
-  return {
-    name,
-    calories,
-    fat,
-    carbs,
-    protein,
-    price,
-    history: [
-      {
-        date: "2020-01-05",
-        customerId: "11091700",
-        amount: 3,
-      },
-      {
-        date: "2020-01-02",
-        customerId: "Anonymous",
-        amount: 1,
-      },
-    ],
-  };
-}
 
 function Row({
   i,
@@ -108,7 +82,7 @@ function Row({
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {i}
+          {++i}
         </TableCell>
         <TableCell align="right">{laporan.kegiatan}</TableCell>
         <TableCell align="right">
@@ -162,25 +136,6 @@ function Row({
   );
 }
 
-const rows = [
-  createData("Frozen yoghurt", 159, 6.0, 24, 4.0, 3.99),
-  createData("Ice cream sandwich", 237, 9.0, 37, 4.3, 4.99),
-  createData("Eclair", 262, 16.0, 24, 6.0, 3.79),
-  createData("Cupcake", 305, 3.7, 67, 4.3, 2.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-  createData("Gingerbread", 356, 16.0, 49, 3.9, 1.5),
-];
-
 export default function _Page({
   laporanBulanan,
 }: {
@@ -191,14 +146,7 @@ export default function _Page({
   };
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<
-    { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
-  >({
-    vertical: "top",
-    horizontal: "center",
-    isOpen: false,
-    message: "",
-  });
+  const [snackbar, setSnackbar] = React.useContext(MyNavContext);
   const [dialogAksi, setDialogAksi] = React.useState<{
     isOpen: boolean;
     aksi: "DITERIMA" | "DITOLAK";
@@ -212,6 +160,7 @@ export default function _Page({
     },
   });
   const [fileLaporan, setFileLaporan] = useState<string | null>(null);
+  const ref = React.createRef<HTMLDivElement>();
   const r = useRouter();
   const handleClickOpen = (aksi: "DITOLAK" | "DITERIMA") => {
     setDialogAksi((oldV) => ({ ...oldV, isOpen: true, aksi }));
@@ -228,329 +177,273 @@ export default function _Page({
           mt: 2,
         }}
       >
-        <Snackbar
-          anchorOrigin={{
-            vertical: snackbar.vertical,
-            horizontal: snackbar.horizontal,
-          }}
-          open={snackbar.isOpen}
-          onClose={() => {
-            setSnackbar({
-              ...snackbar,
-              isOpen: false,
-            });
-          }}
-          key={snackbar.horizontal + snackbar.vertical}
-        >
-          <Alert
-            onClose={() => {
-              setSnackbar({
-                ...snackbar,
-                isOpen: false,
-              });
-            }}
-            severity={snackbar.severity}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-        <MyLoadingBox isLoading={isLoading}>
-          <Dialog
-            open={dialogAksi.isOpen}
-            onClose={handleClose}
-            PaperProps={{
-              component: "form",
-              onSubmit: handleSubmit(async (data) => {
-                try {
-                  setIsLoading(true);
-                  const res = await axios({
-                    url: `/api/laporan/bulanan/update-status/${laporanBulanan.id}`,
-                    method: "POST",
-                    data: {
-                      status: dialogAksi.aksi,
-                      pesan: data.pesan,
-                    },
-                  });
-                  setSnackbar((oldV) => ({
-                    ...oldV,
-                    isOpen: true,
-                    message: "Berhasil",
-                    severity: "success",
-                  }));
-                } catch (error) {
-                  setSnackbar((oldV) => ({
-                    ...oldV,
-                    isOpen: true,
-                    message: "Gagal",
-                    severity: "error",
-                  }));
-                } finally {
-                  reset();
-                  handleClose();
-                  r.replace("/kelola-laporan-staf");
-                }
-              }),
-              sx: ({ palette }) => ({
-                minWidth: 500,
-                outline: "2px",
-                outlineStyle: "solid",
-                outlineColor:
-                  dialogAksi.aksi === "DITERIMA"
-                    ? palette.success.main
-                    : palette.error.main,
-              }),
-            }}
-          >
-            <DialogTitle>
-              {dialogAksi.aksi === "DITERIMA"
-                ? "Terima Laporan"
-                : "Tolak Laporan"}
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText>Pesan</DialogContentText>
-              <TextField
-                autoFocus
-                id="pesan"
-                variant="outlined"
-                minRows={3}
-                multiline
-                fullWidth
-                {...register("pesan")}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
-              <Button type="submit">Submit</Button>
-            </DialogActions>
-          </Dialog>
-        </MyLoadingBox>
-        <Paper
-          sx={{
-            p: 2,
-            display: "flex",
-            flexDirection: "column",
+        <Dialog
+          open={dialogAksi.isOpen}
+          onClose={handleClose}
+          PaperProps={{
+            component: "form",
+            onSubmit: handleSubmit(async (data) => {
+              try {
+                setIsLoading(true);
+                const res = await axios({
+                  url: `/api/laporan/bulanan/update-status/${laporanBulanan.id}`,
+                  method: "POST",
+                  data: {
+                    status: dialogAksi.aksi,
+                    pesan: data.pesan,
+                  },
+                });
+                setSnackbar((oldV) => ({
+                  ...oldV,
+                  isOpen: true,
+                  message: "Berhasil",
+                  severity: "success",
+                }));
+              } catch (error) {
+                setSnackbar((oldV) => ({
+                  ...oldV,
+                  isOpen: true,
+                  message: "Gagal",
+                  severity: "error",
+                }));
+              } finally {
+                reset();
+                handleClose();
+                r.replace("/kelola-laporan-staf");
+              }
+            }),
+            sx: ({ palette }) => ({
+              minWidth: 500,
+              outline: "2px",
+              outlineStyle: "solid",
+              outlineColor:
+                dialogAksi.aksi === "DITERIMA"
+                  ? palette.success.main
+                  : palette.error.main,
+            }),
           }}
         >
-          <Grid
-            container
-            sx={{
-              mb: 2,
-            }}
-          >
-            <Grid item xs={6}>
-              <Typography variant="h4">
-                {laporanBulanan.pegawai.nama}
-              </Typography>
-              <Typography variant="h6" fontWeight="bold">
-                {`${laporanBulanan.pegawai.unitKerja} - ${laporanBulanan.pegawai.jabatan}`}
-              </Typography>
-            </Grid>
-            <Grid
-              item
-              xs={6}
-              sx={{
-                textAlign: "end",
-              }}
-            >
-              <Typography>
-                {`Laporan Periode ${moment(laporanBulanan.bulan).format(
-                  "MMMM YYYY"
-                )}`}
-              </Typography>
-            </Grid>
-          </Grid>
-
-          {laporanBulanan.status[laporanBulanan.status.length - 1].status ===
-            "MENUNGGU" && (
-            <ButtonGroup
-              size="large"
-              aria-label="large button group"
-              sx={{
-                m: "auto",
-              }}
-            >
-              <Button
-                key="terima"
-                color="success"
-                onClick={() => {
-                  handleClickOpen("DITERIMA");
-                }}
-              >
-                Terima
-              </Button>
-              ,
-              <Button
-                key="tolak"
-                color="error"
-                onClick={() => {
-                  handleClickOpen("DITOLAK");
-                }}
-              >
-                Tolak
-              </Button>
-              ,
-            </ButtonGroup>
-          )}
-
-          <Paper
-            sx={{
-              maxHeight: 400,
-              overflow: "auto",
-              m: 4,
-            }}
-          >
-            <TableContainer>
-              <Table aria-label="collapsible table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell />
-                    <TableCell>No.</TableCell>
-                    <TableCell>Kegiatan</TableCell>
-                    <TableCell align="right">Tanggal</TableCell>
-                    <TableCell align="right">Lokasi</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {laporanBulanan.laporan.map((laporan, i) => (
-                    <Row key={laporan.id} i={i} laporan={laporan} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Button
-              onClick={async () => {
-                try {
-                  setIsLoading(true);
-                  const resPdf = await axios({
-                    url: "https://api.hybiscus.dev/api/v1/build-report",
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "X-API-KEY":
-                        "P-H_NsTfhLotwj6QIZ2Z9EZ11dhgpJITbEDW8dg3mj4",
-                    },
-                    data: {
-                      type: "Report",
-                      options: {
-                        report_title: `Rekap Laporan`,
-                        report_byline: `${getMonthName(
-                          moment(laporanBulanan.bulan).month()
-                        )} ${new Date().getFullYear()}`,
-                        version_number: "0.1b",
-                      },
-                      components: [
-                        {
-                          type: "Section",
-                          options: {
-                            section_title: `Detail Kegiatan Selama Bulan ${getMonthName(
-                              moment(laporanBulanan.bulan).month()
-                            )}`,
-                            columns: 1,
-                          },
-                          components: [
-                            {
-                              type: "Table",
-                              options: {
-                                headings: [
-                                  "Id",
-                                  "Tanggal",
-                                  "Kegiatan",
-                                  "Lokasi",
-                                ],
-                                rows: laporanBulanan.laporan
-                                  .map((l) => {
-                                    const d = moment(l.tanggal);
-                                    return {
-                                      id: l.id,
-                                      tanggal: `${d.day()} ${getMonthName(
-                                        d.month()
-                                      )} ${d.year()}`,
-                                      kegiatan: l.kegiatan,
-                                      lokasi: l.lokasi,
-                                    };
-                                  })
-                                  .map((l) => Object.values(l)),
-                              },
-                            },
-                            {
-                              type: "Section",
-                              options: {
-                                section_title: `Mengetahui`,
-                                vertical_margin: 16,
-                                columns: 1,
-                                width: "1/3",
-                              },
-                              components: [
-                                {
-                                  type: "Image",
-                                  width: "1/4",
-                                  options: {
-                                    image_url:
-                                      "https://cdn.britannica.com/17/155017-050-9AC96FC8/Example-QR-code.jpg",
-                                    caption:
-                                      laporanBulanan.pegawai.atasan?.nama,
-                                    enable_border: false,
-                                  },
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  });
-                  const resUpdatedPdf = await axios({
-                    url: `/api/laporan/bulanan/update-pdf/${laporanBulanan.id}`,
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    data: {
-                      path: resPdf.data.task_id,
-                    },
-                  });
-                  console.log(resPdf);
-                  console.log(resUpdatedPdf);
-                } catch (error) {
-                  console.log(error);
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-            >
-              Generate Laporan
-            </Button>
-            <Button
-              onClick={async () => {
-                try {
-                  setIsLoading(true);
-                  const res = await axios({
-                    url: `/api/laporan/bulanan/get/${laporanBulanan.id}`,
-                    method: "GET",
-                  });
-                  setFileLaporan(res.data.path);
-                } catch (error) {
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-            >
-              Load Laporan
-            </Button>
-          </Paper>
-
-          {fileLaporan && (
-            <Box
-              component="iframe"
-              src={`https://api.hybiscus.dev/api/v1/get-report?task_id=${fileLaporan}&api_key=P-H_NsTfhLotwj6QIZ2Z9EZ11dhgpJITbEDW8dg3mj4`}
-              sx={{
-                width: "100%",
-                minHeight: 750,
-              }}
+          <DialogTitle>
+            {dialogAksi.aksi === "DITERIMA"
+              ? "Terima Laporan"
+              : "Tolak Laporan"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>Pesan</DialogContentText>
+            <TextField
+              autoFocus
+              id="pesan"
+              variant="outlined"
+              minRows={3}
+              multiline
+              fullWidth
+              {...register("pesan")}
             />
-          )}
-        </Paper>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit">Submit</Button>
+          </DialogActions>
+        </Dialog>
+        <MyLoadingBox isLoading={isLoading}>
+          <Paper
+            component="div"
+            ref={ref}
+            sx={{
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Grid
+              container
+              component="div"
+              sx={{
+                mb: 2,
+              }}
+            >
+              <Grid item xs={6}>
+                <Typography variant="h4">
+                  {laporanBulanan.pegawai.nama}
+                </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                  {`${laporanBulanan.pegawai.unitKerja} - ${laporanBulanan.pegawai.jabatan}`}
+                </Typography>
+              </Grid>
+              <Grid
+                item
+                xs={6}
+                sx={{
+                  textAlign: "end",
+                }}
+              >
+                <Typography>
+                  {`Laporan Periode ${moment(laporanBulanan.bulan).format(
+                    "MMMM YYYY"
+                  )}`}
+                </Typography>
+              </Grid>
+            </Grid>
+
+            {laporanBulanan.status[laporanBulanan.status.length - 1].status ===
+              "MENUNGGU" && (
+              <ButtonGroup
+                size="large"
+                aria-label="large button group"
+                sx={{
+                  m: "auto",
+                }}
+              >
+                <Button
+                  key="terima"
+                  color="success"
+                  onClick={() => {
+                    handleClickOpen("DITERIMA");
+                  }}
+                >
+                  Terima
+                </Button>
+                ,
+                <Button
+                  key="tolak"
+                  color="error"
+                  onClick={() => {
+                    handleClickOpen("DITOLAK");
+                  }}
+                >
+                  Tolak
+                </Button>
+                ,
+              </ButtonGroup>
+            )}
+
+            <Paper
+              sx={{
+                maxHeight: 400,
+                overflow: "auto",
+                m: 4,
+              }}
+            >
+              <TableContainer>
+                <Table aria-label="collapsible table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell />
+                      <TableCell>No.</TableCell>
+                      <TableCell>Kegiatan</TableCell>
+                      <TableCell align="right">Tanggal</TableCell>
+                      <TableCell align="right">Lokasi</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {laporanBulanan.laporan.map((laporan, i) => (
+                      <Row key={laporan.id} i={i} laporan={laporan} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+
+            {laporanBulanan.status.filter((s) => s.status === "DITERIMA")
+              .length > 0 && (
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{
+                  my: 2,
+                }}
+              >
+                <Button
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      const resPdf = await axios({
+                        method: "POST",
+                        url: "https://us1.pdfgeneratorapi.com/api/v4/documents/generate",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization:
+                            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxZDFiNzRlMzM2MTMxNjI2NjIyYTkyNzdiYTVkZDNhYzhkOGYxYzExOTY0OTIzMDQ5Mjc1ZDI1ZjQ3NzUxZjNkIiwic3ViIjoidGdjZml0cmFoMjZAZ21haWwuY29tIiwiZXhwIjoxNzA2MjU0Mjc0fQ.CFTu4ytnPTZveafVb2yUylUTFi8IxvbAzv06lz2WSAU",
+                        },
+                        data: {
+                          template: {
+                            id: "947567",
+                            data: [
+                              {
+                                periode_laporan: moment(
+                                  laporanBulanan.bulan
+                                ).format("MMMM YYYY"),
+                                nama: laporanBulanan.pegawai.nama,
+                                jabatan: laporanBulanan.pegawai.jabatan,
+                                unit_kerja: laporanBulanan.pegawai.unitKerja,
+                                nama_atasan:
+                                  laporanBulanan.pegawai.atasan?.nama,
+                                line_items: laporanBulanan.laporan.map((l) => ({
+                                  tanggal: moment(l.tanggal).format(
+                                    "DDDD MMMM YYYY"
+                                  ),
+                                  kegiatan: l.kegiatan,
+                                  rincian_kegiatan: l.rincianKegiatan,
+                                  image_1: l.foto.length > 0 ? l.foto[0] : null,
+                                })),
+                              },
+                            ],
+                          },
+                          format: "pdf",
+                          output: "url",
+                          name: "laporan",
+                        },
+                      });
+                      setFileLaporan(resPdf.data.response);
+                      const resUpdatePdf = await axios({
+                        method: "PUT",
+                        url: `/api/laporan/bulanan/update-pdf/${laporanBulanan.id}`,
+                        data: {
+                          path: resPdf.data.response,
+                        },
+                      });
+                      console.log(resUpdatePdf);
+                    } catch (error) {
+                      console.log(error);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                >
+                  Generate Laporan
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      const res = await axios({
+                        url: `/api/laporan/bulanan/get/${laporanBulanan.id}`,
+                        method: "GET",
+                      });
+                      setFileLaporan(res.data.path);
+                    } catch (error) {
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                >
+                  Load Laporan
+                </Button>
+              </Stack>
+            )}
+
+            {fileLaporan && (
+              <Box
+                component="iframe"
+                src={fileLaporan}
+                sx={{
+                  width: "100%",
+                  minHeight: 750,
+                }}
+              />
+            )}
+          </Paper>
+        </MyLoadingBox>
       </Container>
     </>
   );

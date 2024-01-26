@@ -9,10 +9,10 @@ const nextConfig = {
     ],
   },
   webpack: (config) => {
-    config.resolve.alias.canvas = false
+    config.resolve.alias.canvas = false;
 
-    return config
-  }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

@@ -1,28 +1,18 @@
 "use client";
 
-import React from "react";
-import { PieChart, BarChart } from "@mui/x-charts";
 import {
   Avatar,
   Card,
   CardContent,
   Container,
   Grid,
-  Paper,
   Stack,
   SvgIcon,
   Typography,
 } from "@mui/material";
 import Dashboard from "../_common/Dashboard";
 import FormatListBulleted from "@mui/icons-material/FormatListBulleted";
-import { ClearIcon } from "@mui/x-date-pickers";
 
-import CurrencyIcon from "@mui/icons-material/CurrencyBitcoin";
-import ArrowUpIcon from "@mui/icons-material/ArrowUpward";
-import CheckIcon from "@mui/icons-material/Check";
-import SendIcon from "@mui/icons-material/Send";
-import ListItemIcon from "@mui/icons-material/FormatListBulleted";
-import ArrowDownIcon from "@mui/icons-material/ArrowDownward";
 import { Pegawai } from "@prisma/client";
 
 export default function _Page({

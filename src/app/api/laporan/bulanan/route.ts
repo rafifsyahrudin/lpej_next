@@ -30,9 +30,10 @@ export async function POST(req: NextRequest) {
   });
 
   reqData.laporan.forEach(async (l) => {
+    console.log(moment(l.tanggal).utcOffset(7).toISOString());
     await prisma.laporan.create({
       data: {
-        tanggal: moment(l.tanggal).toISOString(true),
+        tanggal: moment(l.tanggal).utcOffset(7).toISOString(true),
         lokasi: l.lokasi,
         kegiatan: l.kegiatan,
         rincianKegiatan: l.rincianKegiatan,

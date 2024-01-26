@@ -22,7 +22,13 @@ import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Tooltip } from "@mui/material";
+import {
+  Alert,
+  AlertColor,
+  Snackbar,
+  SnackbarOrigin,
+  Tooltip,
+} from "@mui/material";
 
 function Copyright(props: any) {
   return (
@@ -107,6 +113,27 @@ export type Props = {
   nama: string;
 };
 
+export type MyNavContextType = [
+  {
+    isOpen: boolean;
+    message: string;
+    severity?: AlertColor;
+  } & SnackbarOrigin,
+  React.Dispatch<
+    React.SetStateAction<
+      {
+        isOpen: boolean;
+        message: string;
+        severity?: AlertColor;
+      } & SnackbarOrigin
+    >
+  >
+];
+
+export const MyNavContext = React.createContext<MyNavContextType>(
+  [] as unknown as MyNavContextType
+);
+
 export default function MyNav({
   children,
   mainMenu,
@@ -115,6 +142,15 @@ export default function MyNav({
 }: React.PropsWithChildren<Props>) {
   const r = useRouter();
   const [open, setOpen] = React.useState(true);
+  const snackbarState = React.useState<
+    { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
+  >({
+    vertical: "top",
+    horizontal: "center",
+    isOpen: false,
+    message: "",
+  });
+  const [snackbar, setSnackbar] = snackbarState;
   const toggleDrawer = () => {
     setOpen(!open);
   };
@@ -145,6 +181,32 @@ export default function MyNav({
 
   return (
     <ThemeProvider theme={defaultTheme}>
+      <Snackbar
+        anchorOrigin={{
+          vertical: snackbar.vertical,
+          horizontal: snackbar.horizontal,
+        }}
+        open={snackbar.isOpen}
+        onClose={() => {
+          setSnackbar({
+            ...snackbar,
+            isOpen: false,
+          });
+        }}
+        key={snackbar.horizontal + snackbar.vertical}
+      >
+        <Alert
+          onClose={() => {
+            setSnackbar({
+              ...snackbar,
+              isOpen: false,
+            });
+          }}
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
         <AppBar position="absolute" open={open}>
@@ -252,7 +314,9 @@ export default function MyNav({
           }}
         >
           <Toolbar />
-          {children}
+          <MyNavContext.Provider value={snackbarState}>
+            {children}
+          </MyNavContext.Provider>
           <Copyright
             sx={{
               mt: "auto",

@@ -65,14 +65,12 @@ const columns: GridColDef[] = [
   {
     field: "laporanBulan",
     headerName: "Periode Laporan",
-    valueGetter: (params) =>
-      `${getMonthName(moment(params.row.bulan).month())} ${moment(
-        params.row.bulan
-      ).year()}`,
+    valueFormatter: (params) => moment(params.value).format("MMMM YYYY"),
+    valueGetter: (params) => moment(params.row.bulan),
     flex: 1,
   },
   {
-    field: "action",
+    field: "aksi",
     headerName: "Aksi",
     renderCell: ({ row }) => {
       return (
@@ -109,7 +107,7 @@ export default function _Page({
           initialState={{
             pagination: {
               paginationModel: {
-                pageSize: 5,
+                pageSize: 10,
               },
             },
           }}

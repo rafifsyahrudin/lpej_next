@@ -25,7 +25,7 @@ import {
   UploadDropzone,
   UploadDropzoneConfig,
 } from "@bytescale/upload-widget-react";
-import { LaporanFoto } from "@prisma/client";
+import { LaporanBulanan, LaporanFoto } from "@prisma/client";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment, { Moment } from "moment";
@@ -40,14 +40,16 @@ export type TFormBuatLaporan = {
 };
 
 export default function FormBuatLaporan({
+  laporanBulananPegawai,
   onSubmit,
 }: {
+  laporanBulananPegawai: LaporanBulanan[];
   onSubmit: (
     data: { laporan: TFormBuatLaporan[]; bulan: string },
     reset: () => void
   ) => void;
 }) {
-  const [periodeLaporan, setPeriodeLaporan] = useState<Moment>(moment());
+  const [periodeLaporan, setPeriodeLaporan] = useState<Moment>();
   const [usedDate, setUsedDate] = useState<Set<number>>(new Set());
   const { register, control, handleSubmit, watch, reset, setValue, getValues } =
     useForm<{
@@ -72,6 +74,10 @@ export default function FormBuatLaporan({
           };
         }
 
+        if (!periodeLaporan) {
+          return v;
+        }
+
         return {
           ...v,
           tanggal: moment(v.tanggal)
@@ -84,6 +90,10 @@ export default function FormBuatLaporan({
   }, [periodeLaporan]);
 
   const handleBuatLaporan = async ({ data }: { data: TFormBuatLaporan[] }) => {
+    if (!periodeLaporan) {
+      return;
+    }
+
     onSubmit(
       {
         bulan: periodeLaporan.format("MM/DD/YYYY"),
@@ -91,6 +101,7 @@ export default function FormBuatLaporan({
       },
       () => {
         setUsedDate(new Set());
+        setPeriodeLaporan(undefined);
         reset();
       }
     );
@@ -112,6 +123,11 @@ export default function FormBuatLaporan({
               onChange={(m) => {
                 if (m) setPeriodeLaporan(m);
               }}
+              shouldDisableMonth={(m) =>
+                laporanBulananPegawai
+                  .map((lb) => moment(lb.bulan).format("MM YYYY"))
+                  .includes(m.format("MM YYYY"))
+              }
             />
           </LocalizationProvider>
         </Box>
@@ -136,6 +152,7 @@ export default function FormBuatLaporan({
                           <DatePicker
                             value={moment(field.value)}
                             inputRef={field.ref}
+                            disabled={!periodeLaporan}
                             onChange={(date) => {
                               if (date) {
                                 field.onChange(date.format("MM/DD/YYYY"));
@@ -160,7 +177,7 @@ export default function FormBuatLaporan({
                               },
                             }}
                             shouldDisableMonth={(m) => {
-                              return m.month() !== periodeLaporan.month();
+                              return m.month() !== periodeLaporan?.month();
                             }}
                             shouldDisableDate={(m) => {
                               return usedDate.has(m.date());
@@ -177,6 +194,7 @@ export default function FormBuatLaporan({
                       id="lokasi"
                       variant="outlined"
                       fullWidth
+                      required
                       placeholder="Dinas Provinsi Sumatera Selatan ..."
                       InputProps={{
                         startAdornment: (
@@ -263,8 +281,8 @@ export default function FormBuatLaporan({
               append({
                 tanggal: moment(periodeLaporan).format("MM/DD/YYYY"),
                 lokasi: "",
-                kegiatan: "Mendesain",
-                rincianKegiatan: "mendesain",
+                kegiatan: "",
+                rincianKegiatan: "",
                 foto: [],
               });
             }}
