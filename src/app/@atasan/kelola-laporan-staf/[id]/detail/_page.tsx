@@ -1,5 +1,8 @@
 "use client";
 
+const JWT =
+  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxZDFiNzRlMzM2MTMxNjI2NjIyYTkyNzdiYTVkZDNhYzhkOGYxYzExOTY0OTIzMDQ5Mjc1ZDI1ZjQ3NzUxZjNkIiwic3ViIjoidGdjZml0cmFoMjZAZ21haWwuY29tIiwiZXhwIjoxNzA2MjU2NDg3fQ.UqMKaslS1-3Ar3ucTKLVq3MxAv2BOsGt__ctQRat1Po";
+
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Collapse from "@mui/material/Collapse";
@@ -17,6 +20,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
 import { Document, Page, pdfjs } from "react-pdf";
+import jwt from "jsonwebtoken";
 import {
   LaporanBulanan,
   Pegawai,
@@ -362,8 +366,7 @@ export default function _Page({
                         url: "https://us1.pdfgeneratorapi.com/api/v4/documents/generate",
                         headers: {
                           "Content-Type": "application/json",
-                          Authorization:
-                            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxZDFiNzRlMzM2MTMxNjI2NjIyYTkyNzdiYTVkZDNhYzhkOGYxYzExOTY0OTIzMDQ5Mjc1ZDI1ZjQ3NzUxZjNkIiwic3ViIjoidGdjZml0cmFoMjZAZ21haWwuY29tIiwiZXhwIjoxNzA2MjU0Mjc0fQ.CFTu4ytnPTZveafVb2yUylUTFi8IxvbAzv06lz2WSAU",
+                          Authorization: `Bearer ${JWT}`,
                         },
                         data: {
                           template: {
