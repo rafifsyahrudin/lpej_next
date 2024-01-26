@@ -16,6 +16,9 @@ export default async function Page({ params }: { params: { id: string } }) {
         include: {
           foto: true,
         },
+        orderBy: {
+          tanggal: "asc",
+        },
       },
       status: true,
     },

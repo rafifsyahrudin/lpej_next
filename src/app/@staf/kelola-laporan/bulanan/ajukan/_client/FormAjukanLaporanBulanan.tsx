@@ -31,13 +31,15 @@ import {
 } from "@prisma/client";
 import axios from "axios";
 import moment, { Moment } from "moment";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { Session } from "next-auth";
 import { stat } from "fs";
 import MyLoadingBox from "@/app/_components/MyLoadingBox";
 import { useRouter } from "next/navigation";
+import { laporanBulananScheme } from "@/utils/zod-schemes";
+import { MyNavContext } from "@/app/_components/MyNav";
 
 export type TFormAjukanLaporanBulanan = {
   bulan: Date;
@@ -62,8 +64,13 @@ const ButtonKirimLaporan = ({
   onClick: () => void;
 }) => {
   if (status.length > 0) {
-    if (status[status.length - 1].status === "MENUNGGU") {
-      return <Button>Laporan Terkirim!</Button>;
+    switch (status[status.length - 1].status) {
+      case "MENUNGGU":
+        return <Typography color="warning.main">Laporan Terkirim</Typography>;
+      case "DITERIMA":
+        return <Typography color="success.main">Laporan Diterima</Typography>;
+      case "DITOLAK":
+        return <Typography color="error.main">Laporan Ditolak</Typography>;
     }
   }
 
@@ -87,54 +94,35 @@ export default function FormAjukanLaporanBulanan({
   >(null);
   const [bulanLaporan, setBulanLaporan] = useState<Moment>(moment());
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<
-    { isOpen: boolean; message: string; severity?: AlertColor } & SnackbarOrigin
-  >({
-    vertical: "top",
-    horizontal: "center",
-    isOpen: false,
-    message: "",
-  });
+  const [snackbar, setSnackbar] = useContext(MyNavContext);
 
   useEffect(() => {
     (async () => {
-      const res = await axios({
-        url: `/api/laporan/bulanan/${bulanLaporan.month()}/${bulanLaporan.year()}?pegawaiId=${
-          session.user.id
-        }`,
-        method: "GET",
-      });
+      try {
+        setIsLoading(true);
+        const res = await axios({
+          url: `/api/laporan/bulanan/${bulanLaporan.month()}/${bulanLaporan.year()}?pegawaiId=${
+            session.user.id
+          }`,
+          method: "GET",
+        });
 
-      const laporanScheme = z.object({
-        id: z.coerce.number(),
-        tanggal: z.coerce.date(),
-        kegiatan: z.string(),
-        rincianKegiatan: z.string().nullable(),
-        lokasi: z.string(),
-        pegawaiId: z.coerce.number(),
-        laporanBulananId: z.coerce.number().nullable(),
-      });
-      const statusLaporanBulananScheme = z.object({
-        id: z.coerce.number(),
-        tanggal: z.coerce.date(),
-        status: z.nativeEnum(Status),
-        pesan: z.string().nullable(),
-        laporanBulananId: z.coerce.number(),
-      });
-      const laporanBulananScheme = z.object({
-        id: z.coerce.number(),
-        bulan: z.coerce.date(),
-        path: z.string().nullable(),
-        pegawaiId: z.coerce.number(),
-        laporan: z.array(laporanScheme),
-        status: z.array(statusLaporanBulananScheme),
-      });
-      const dataLaporanBulanan = z
-        .nullable(laporanBulananScheme)
-        .parse(res.data);
-      setLaporanBulanan(() => dataLaporanBulanan);
+        const dataLaporanBulanan = z
+          .nullable(laporanBulananScheme)
+          .parse(res.data);
+        setLaporanBulanan(() => dataLaporanBulanan);
+      } catch (error) {
+        setSnackbar((oldV) => ({
+          ...oldV,
+          isOpen: true,
+          severity: "error",
+          message: "Gagal memuat data",
+        }));
+      } finally {
+        setIsLoading(false);
+      }
     })();
-  }, [bulanLaporan, session.user.id]);
+  }, [bulanLaporan, session.user.id, setSnackbar]);
 
   return (
     <>
@@ -146,32 +134,6 @@ export default function FormAjukanLaporanBulanan({
           outline: "solid 1px black",
         }}
       >
-        <Snackbar
-          anchorOrigin={{
-            vertical: snackbar.vertical,
-            horizontal: snackbar.horizontal,
-          }}
-          open={snackbar.isOpen}
-          onClose={() => {
-            setSnackbar({
-              ...snackbar,
-              isOpen: false,
-            });
-          }}
-          key={snackbar.horizontal + snackbar.vertical}
-        >
-          <Alert
-            onClose={() => {
-              setSnackbar({
-                ...snackbar,
-                isOpen: false,
-              });
-            }}
-            severity={snackbar.severity}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
         <MyLoadingBox isLoading={isLoading}>
           <Box
             sx={{
@@ -181,7 +143,7 @@ export default function FormAjukanLaporanBulanan({
           >
             <LocalizationProvider dateAdapter={AdapterMoment}>
               <DatePicker
-                label={"Bulan Laporan"}
+                label={"Periode Laporan"}
                 views={["month", "year"]}
                 value={bulanLaporan}
                 onChange={(v) => {
@@ -194,7 +156,7 @@ export default function FormAjukanLaporanBulanan({
                 }}
               />
             </LocalizationProvider>
-            {laporanBulanan?.status && (
+            {laporanBulanan && (
               <ButtonKirimLaporan
                 status={laporanBulanan.status}
                 onClick={async () => {
@@ -241,7 +203,7 @@ export default function FormAjukanLaporanBulanan({
                     <TableRow key={l.id}>
                       <TableCell component="th">{i + 1}</TableCell>
                       <TableCell component="th">
-                        {l.tanggal.toDateString()}
+                        {moment(l.tanggal).format("dddd, DD MMMM YYYY")}
                       </TableCell>
                       <TableCell component="th">{l.kegiatan}</TableCell>
                       <TableCell component="th">{l.rincianKegiatan}</TableCell>

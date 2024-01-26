@@ -42,7 +42,7 @@ export default function _Page({
       field: "tanggal",
       headerName: "Tanggal",
       resizable: true,
-      valueGetter: ({ value }) => moment(value).format("DD MMMM YYYY"),
+      valueGetter: ({ value }) => moment(value).format("DD MMMM YYYY HH:mm:ss"),
       flex: 1,
     },
     { field: "kegiatan", headerName: "Kegiatan", resizable: true, flex: 1 },

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/config/prisma";
 import { LaporanBulanan } from "@prisma/client";
 
-export async function POST(
+export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
